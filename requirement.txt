@@ -1,0 +1,9 @@
+discord.py
+yt-dlp
+asyncio
+ollama
+python-dotenv
+requests
+beautifulsoup4
+lxml
+spotipy
