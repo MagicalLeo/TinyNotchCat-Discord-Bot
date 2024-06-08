@@ -15,7 +15,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 SPOTITY_SECRET = os.getenv('SPOTIFY_SECRET')
 
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix='/', intents=intents)
+bot = commands.Bot(command_prefix='.', intents=intents)
 
 @bot.event
 # 當機器人完成啟動
@@ -23,22 +23,31 @@ async def on_ready():
     slash = await bot.tree.sync()
     print(f"目前登入身份 --> {bot.user}")
     print(f"載入 {len(slash)} 個斜線指令")
-
     await bot.change_presence(status=discord.Status.idle, activity=discord.Game('從北京跑到巴黎'))
-    load_complaints()
-    print("抱怨列表已加載。")
 
 @bot.command()
-async def load(ctx, extension):
-    bot.load_extension(f'cogs.{extension}')
+async def load(ctx: commands.Context, extension: str):
+    try:
+        await bot.load_extension(f'cogs.{extension}')
+        await ctx.send(f'{extension} loaded')
+    except:
+        await ctx.send(f'{extension} not found')
 
 @bot.command()
-async def unload(ctx, extension):
-    bot.unload_extension(f'cogs.{extension}')
+async def unload(ctx: commands.Context, extension: str):
+    try:
+        await bot.unload_extension(f'cogs.{extension}')
+        await ctx.send(f'{extension} unloaded')
+    except:
+        await ctx.send(f'{extension} not found')
 
 @bot.command()
-async def reload(ctx, extension):
-    bot.reload_extension(f'cogs.{extension}')
+async def reload(ctx: commands.Context, extension: str):
+    try:
+        await bot.reload_extension(f'cogs.{extension}')
+        await ctx.send(f'{extension} reloaded')
+    except:
+        await ctx.send(f'{extension} not found')
 
 async def load_extensions():
     for filename in os.listdir("./cogs"):
