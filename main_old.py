@@ -469,74 +469,74 @@ async def calc(ctx, *, expression):
         await ctx.send(f"計算錯誤: {e}")
 
 
-def save_complaints():
-    with open(COMPLAINTS_FILE, 'wb') as f:
-        pickle.dump(complaints, f)
+# def save_complaints():
+#     with open(COMPLAINTS_FILE, 'wb') as f:
+#         pickle.dump(complaints, f)
 
 
-def load_complaints():
-    global complaints
-    try:
-        with open(COMPLAINTS_FILE, 'rb') as f:
-            complaints = pickle.load(f)
-    except FileNotFoundError:
-        complaints = []
+# def load_complaints():
+#     global complaints
+#     try:
+#         with open(COMPLAINTS_FILE, 'rb') as f:
+#             complaints = pickle.load(f)
+#     except FileNotFoundError:
+#         complaints = []
 
 
-# complain
-@bot.command()
-async def complain(ctx, *, complaint: str):
-    complaints.append(complaint)
-    save_complaints()
-    await ctx.send("你的抱怨已提交!")
+# # complain
+# @bot.command()
+# async def complain(ctx, *, complaint: str):
+#     complaints.append(complaint)
+#     save_complaints()
+#     await ctx.send("你的抱怨已提交!")
 
 
-# show_complaint
-@bot.command()
-async def show_complaint(ctx):
-    if complaints:
-        await ctx.send(random.choice(complaints))
-    else:
-        await ctx.send("目前沒有抱怨")
+# # show_complaint
+# @bot.command()
+# async def show_complaint(ctx):
+#     if complaints:
+#         await ctx.send(random.choice(complaints))
+#     else:
+#         await ctx.send("目前沒有抱怨")
 
 
-# clear_complaint
-@bot.command()
-async def clear_complaint(ctx):
-    global complaints
-    complaints = []
-    save_complaints()
-    await ctx.send("抱怨箱已清空!")
+# # clear_complaint
+# @bot.command()
+# async def clear_complaint(ctx):
+#     global complaints
+#     complaints = []
+#     save_complaints()
+#     await ctx.send("抱怨箱已清空!")
 
 
-# HELP
-@bot.command()
-async def HELP(ctx):
-    help_message = """
-```指令以 % 開頭，音樂機器人指令如下：
-    %Hello: 向機器人打招呼，機器人將回覆"Hello, world!"
-    %remind: 設定提醒功能，在一段時間後提醒用戶進行某項任務。
-    %joke: 機器人將隨機傳遞一個笑話。
-    %eat: 提供晚餐建議。
-    %do: 提供活動建議。
-    %ask: 向機器人提問問題，機器人將回答。
-    %autoplay: 控制自動播放推薦清單功能的開啟和關閉。
-    %sing: 播放指定的YouTube歌曲。
-    %pause: 暫停當前播放的歌曲。
-    %resume: 恢復播放暫停的歌曲。
-    %stop: 停止播放歌曲並斷開音訊頻道。
-    %skip: 跳過當前歌曲並播放下一首。
-    %translate_page（已註解掉）: 翻譯網頁內容的指令。
-    %translate（已註解掉）: 翻譯文本的指令。
-    %yesorno: 八卦機，小凹貓會告訴你是或否 
-    %calc: 小凹貓會告訴你計算結果
-    %complain: 你可以和小凹貓抱怨
-    %show_complaint: 看看誰都被抱怨了
-    %clear_complaint: 清空抱怨箱
-    %nowplaying: 獲取當前播放歌曲
-```
-"""
-    await ctx.send(help_message)
+# # HELP
+# @bot.command()
+# async def HELP(ctx):
+#     help_message = """
+# ```指令以 % 開頭，音樂機器人指令如下：
+#     %Hello: 向機器人打招呼，機器人將回覆"Hello, world!"
+#     %remind: 設定提醒功能，在一段時間後提醒用戶進行某項任務。
+#     %joke: 機器人將隨機傳遞一個笑話。
+#     %eat: 提供晚餐建議。
+#     %do: 提供活動建議。
+#     %ask: 向機器人提問問題，機器人將回答。
+#     %autoplay: 控制自動播放推薦清單功能的開啟和關閉。
+#     %sing: 播放指定的YouTube歌曲。
+#     %pause: 暫停當前播放的歌曲。
+#     %resume: 恢復播放暫停的歌曲。
+#     %stop: 停止播放歌曲並斷開音訊頻道。
+#     %skip: 跳過當前歌曲並播放下一首。
+#     %translate_page（已註解掉）: 翻譯網頁內容的指令。
+#     %translate（已註解掉）: 翻譯文本的指令。
+#     %yesorno: 八卦機，小凹貓會告訴你是或否 
+#     %calc: 小凹貓會告訴你計算結果
+#     %complain: 你可以和小凹貓抱怨
+#     %show_complaint: 看看誰都被抱怨了
+#     %clear_complaint: 清空抱怨箱
+#     %nowplaying: 獲取當前播放歌曲
+# ```
+# """
+#     await ctx.send(help_message)
 
 
 @bot.event

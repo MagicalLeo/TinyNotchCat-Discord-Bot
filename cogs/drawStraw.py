@@ -1,4 +1,5 @@
 import json
+import os
 import random
 import discord
 from discord import app_commands
@@ -26,10 +27,10 @@ class DrawStraw(commands.Cog):
         await interaction.response.send_message(joke)
 
     # eat command
-    @app_commands.command(name = "eat", description = "晚上吃甚麼")
+    @app_commands.command(name = "eat", description = "今晚想來一點")
     async def eat(self, interaction: discord.Interaction):
         food = random.choice(self.foods)
-        await interaction.response.send_message(f"晚上吃甚麼？{food}")
+        await interaction.response.send_message(f"今晚想來一點？{food}")
     
     # do command
     @app_commands.command(name = "do", description = "要幹嘛")
@@ -38,10 +39,10 @@ class DrawStraw(commands.Cog):
         await interaction.response.send_message(f"要幹嘛？{activity}")
 
     # yesorno command
-    @app_commands.command(name = "yesorno", description = "yesorno")
+    @app_commands.command(name = "yesorno", description = "好難決定...")
     async def yesorno(self, interaction: discord.Interaction):
         responses = ["是", "否", "可能", "不確定", "絕對"]
         await interaction.response.send_message(random.choice(responses))
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(DrawStraw(bot))
+    await bot.add_cog(DrawStraw(bot), guild=discord.Object(id= os.getenv('GUILD_ID')))
