@@ -22,8 +22,8 @@ from discord.ui import View, Button
 # intents = discord.Intents.all()
 # bot = commands.Bot(command_prefix="%", intents=intents)
 
-COMPLAINTS_FILE = 'complaints.pkl'
-complaints = []
+# COMPLAINTS_FILE = 'complaints.pkl'
+# complaints = []
 
 # 用于存储对话上下文的字典
 user_context = {}
@@ -245,84 +245,84 @@ async def ask(ctx, *, question):
 #     return now_playing
 
 
-# 自動播放推薦清單控制
-# Autoplay指令
-@bot.command()
-async def autoplay(ctx):
-    global auto_play
-    auto_play = not auto_play
-    await ctx.send(f"自動播放已{'開啟' if auto_play else '關閉'}")
+# # 自動播放推薦清單控制
+# # Autoplay指令
+# @bot.command()
+# async def autoplay(ctx):
+#     global auto_play
+#     auto_play = not auto_play
+#     await ctx.send(f"自動播放已{'開啟' if auto_play else '關閉'}")
 
-    if ctx.author.voice and ctx.author.voice.channel:
-        try:
-            if ctx.guild.id not in voice_clients:
-                voice_client = await ctx.author.voice.channel.connect()
-                voice_clients[voice_client.guild.id] = voice_client
-            else:
-                voice_client = voice_clients[ctx.guild.id]
-                if voice_client.channel != ctx.author.voice.channel:
-                    await voice_client.move_to(ctx.author.voice.channel)
+#     if ctx.author.voice and ctx.author.voice.channel:
+#         try:
+#             if ctx.guild.id not in voice_clients:
+#                 voice_client = await ctx.author.voice.channel.connect()
+#                 voice_clients[voice_client.guild.id] = voice_client
+#             else:
+#                 voice_client = voice_clients[ctx.guild.id]
+#                 if voice_client.channel != ctx.author.voice.channel:
+#                     await voice_client.move_to(ctx.author.voice.channel)
 
-            if auto_play:
-                if not voice_clients[ctx.guild.id].is_playing():
-                    await play_next(ctx)
-        except Exception as e:
-            await ctx.send(f"無法加入語音頻道: {e}")
-    else:
-        await ctx.send("請先加入一個音訊頻道！")
-
-
-async def play_next(ctx):
-    global now_playing
-
-    if queues.get(ctx.guild.id):
-        next_song = queues[ctx.guild.id].pop(0)
-    else:
-        if auto_play:
-            now_playing = 'https://www.youtube.com/watch?v=' + random.choice(recommended_songs)
-            next_song = now_playing
-        else:
-            return
-
-    loop = asyncio.get_event_loop()
-    try:
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(next_song, download=False))
-        song = data['url']
-
-        player = discord.FFmpegPCMAudio(song, **ffmpeg_options)
-        voice_clients[ctx.guild.id].play(player,
-                                         after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop))
-    except Exception as e:
-        print(e)
+#             if auto_play:
+#                 if not voice_clients[ctx.guild.id].is_playing():
+#                     await play_next(ctx)
+#         except Exception as e:
+#             await ctx.send(f"無法加入語音頻道: {e}")
+#     else:
+#         await ctx.send("請先加入一個音訊頻道！")
 
 
-@bot.command()
-async def sing(ctx, url):
-    if ctx.guild.id not in queues:
-        queues[ctx.guild.id] = []
+# async def play_next(ctx):
+#     global now_playing
 
-    try:
-        voice_client = await ctx.author.voice.channel.connect()
-        voice_clients[voice_client.guild.id] = voice_client
-    except Exception as e:
-        print(e)
+#     if queues.get(ctx.guild.id):
+#         next_song = queues[ctx.guild.id].pop(0)
+#     else:
+#         if auto_play:
+#             now_playing = 'https://www.youtube.com/watch?v=' + random.choice(recommended_songs)
+#             next_song = now_playing
+#         else:
+#             return
 
-    try:
-        loop = asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
-        song = data['url']
-        global now_playing
-        now_playing = url
+#     loop = asyncio.get_event_loop()
+#     try:
+#         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(next_song, download=False))
+#         song = data['url']
 
-        if not voice_clients[ctx.guild.id].is_playing():
-            player = discord.FFmpegPCMAudio(song, **ffmpeg_options)
-            voice_clients[ctx.guild.id].play(player,
-                                             after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop))
-        else:
-            queues[ctx.guild.id].append(url)
-            await ctx.send("歌曲已添加到隊列!")
-    except Exception as e:
-        print(e)
+#         player = discord.FFmpegPCMAudio(song, **ffmpeg_options)
+#         voice_clients[ctx.guild.id].play(player,
+#                                          after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop))
+#     except Exception as e:
+#         print(e)
+
+
+# @bot.command()
+# async def sing(ctx, url):
+#     if ctx.guild.id not in queues:
+#         queues[ctx.guild.id] = []
+
+#     try:
+#         voice_client = await ctx.author.voice.channel.connect()
+#         voice_clients[voice_client.guild.id] = voice_client
+#     except Exception as e:
+#         print(e)
+
+#     try:
+#         loop = asyncio.get_event_loop()
+#         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
+#         song = data['url']
+#         global now_playing
+#         now_playing = url
+
+#         if not voice_clients[ctx.guild.id].is_playing():
+#             player = discord.FFmpegPCMAudio(song, **ffmpeg_options)
+#             voice_clients[ctx.guild.id].play(player,
+#                                              after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop))
+#         else:
+#             queues[ctx.guild.id].append(url)
+#             await ctx.send("歌曲已添加到隊列!")
+#     except Exception as e:
+#         print(e)
 
 
 @bot.command()
@@ -369,45 +369,45 @@ async def play_spotify_playlist(ctx, playlist_url):
         await ctx.send("無法播放 Spotify 歌單。請確保 URL 正確並重試。")
 
 
-# PAUSE
-@bot.command()
-async def pause(ctx):
-    try:
-        voice_clients[ctx.guild.id].pause()
-    except Exception as e:
-        print(e)
+# # PAUSE
+# @bot.command()
+# async def pause(ctx):
+#     try:
+#         voice_clients[ctx.guild.id].pause()
+#     except Exception as e:
+#         print(e)
 
 
-# RESUME
-@bot.command()
-async def resume(ctx):
-    try:
-        voice_clients[ctx.guild.id].resume()
-    except Exception as e:
-        print(e)
+# # RESUME
+# @bot.command()
+# async def resume(ctx):
+#     try:
+#         voice_clients[ctx.guild.id].resume()
+#     except Exception as e:
+#         print(e)
 
 
-# STOP
-@bot.command()
-async def stop(ctx):
-    try:
-        voice_clients[ctx.guild.id].stop()
-        await voice_clients[ctx.guild.id].disconnect()
-    except Exception as e:
-        print(e)
+# # STOP
+# @bot.command()
+# async def stop(ctx):
+#     try:
+#         voice_clients[ctx.guild.id].stop()
+#         await voice_clients[ctx.guild.id].disconnect()
+#     except Exception as e:
+#         print(e)
 
 
-# SKIP
-@bot.command()
-async def skip(ctx):
-    try:
-        if ctx.guild.id in voice_clients and voice_clients[ctx.guild.id].is_playing():
-            voice_clients[ctx.guild.id].stop()
-            await play_next(ctx)
-        else:
-            await ctx.send("目前並沒有正在播放的歌曲。")
-    except Exception as e:
-        print(e)
+# # SKIP
+# @bot.command()
+# async def skip(ctx):
+#     try:
+#         if ctx.guild.id in voice_clients and voice_clients[ctx.guild.id].is_playing():
+#             voice_clients[ctx.guild.id].stop()
+#             await play_next(ctx)
+#         else:
+#             await ctx.send("目前並沒有正在播放的歌曲。")
+#     except Exception as e:
+#         print(e)
 
 
 @bot.command()

@@ -1,24 +1,18 @@
-import json
 import os
 import random
 import discord
 from discord import app_commands
 from discord.ext import commands
+from .utils.loadData import load_json
 
 class DrawStraw(commands.Cog):
     
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        reply = self.load_reply("docs/botReply.json")
+        reply = load_json("docs/bot_reply.json")
         self.jokes = reply["jokes"]
         self.foods = reply["foods"]
         self.activities = reply["activities"]
-
-    # Load reply data from json file
-    def load_reply(self, file_path):
-        with open(file_path, 'r', encoding='utf-8') as f:
-            reply_data = json.load(f)
-        return reply_data
     
     # joke command
     @app_commands.command(name = "joke", description = "講個笑話")
