@@ -325,48 +325,48 @@ async def ask(ctx, *, question):
 #         print(e)
 
 
-@bot.command()
-async def play_spotify_playlist(ctx, playlist_url):
-    try:
-        playlist_id = playlist_url.split('/')[-1].split('?')[0]
-        results = sp.playlist_tracks(playlist_id)
-        tracks = results['items']
+# @bot.command()
+# async def play_spotify_playlist(ctx, playlist_url):
+#     try:
+#         playlist_id = playlist_url.split('/')[-1].split('?')[0]
+#         results = sp.playlist_tracks(playlist_id)
+#         tracks = results['items']
 
-        if ctx.author.voice and ctx.author.voice.channel:
-            voice_channel = ctx.author.voice.channel
-            voice_client = await voice_channel.connect()
-            voice_clients[ctx.guild.id] = voice_client
-        else:
-            await ctx.send("請先加入一個音訊頻道！")
-            return
+#         if ctx.author.voice and ctx.author.voice.channel:
+#             voice_channel = ctx.author.voice.channel
+#             voice_client = await voice_channel.connect()
+#             voice_clients[ctx.guild.id] = voice_client
+#         else:
+#             await ctx.send("請先加入一個音訊頻道！")
+#             return
 
-        for item in tracks:
-            track = item['track']
-            track_name = track['name']
-            track_artist = track['artists'][0]['name']
-            query = f"{track_name} {track_artist} lyrics"
+#         for item in tracks:
+#             track = item['track']
+#             track_name = track['name']
+#             track_artist = track['artists'][0]['name']
+#             query = f"{track_name} {track_artist} lyrics"
 
-            loop = asyncio.get_event_loop()
-            data = await loop.run_in_executor(None,
-                                              lambda: ytdl.extract_info(f"ytsearch:{query}", download=False)['entries'][
-                                                  0])
-            song_url = data['url']
-            global now_playing
-            now_playing = song_url
+#             loop = asyncio.get_event_loop()
+#             data = await loop.run_in_executor(None,
+#                                               lambda: ytdl.extract_info(f"ytsearch:{query}", download=False)['entries'][
+#                                                   0])
+#             song_url = data['url']
+#             global now_playing
+#             now_playing = song_url
 
-            if ctx.guild.id not in queues:
-                queues[ctx.guild.id] = []
+#             if ctx.guild.id not in queues:
+#                 queues[ctx.guild.id] = []
 
-            queues[ctx.guild.id].append(song_url)
-            # await ctx.send(f"已添加歌曲：{track_name} - {track_artist}")
+#             queues[ctx.guild.id].append(song_url)
+#             # await ctx.send(f"已添加歌曲：{track_name} - {track_artist}")
 
-            if not voice_clients.get(ctx.guild.id) or not voice_clients[ctx.guild.id].is_playing():
-                await play_next(ctx)
-                while voice_clients[ctx.guild.id].is_playing():
-                    await asyncio.sleep(1)  # 等待 1 秒，確保下一首歌曲播放完畢再繼續下一首
-    except Exception as e:
-        print(e)
-        await ctx.send("無法播放 Spotify 歌單。請確保 URL 正確並重試。")
+#             if not voice_clients.get(ctx.guild.id) or not voice_clients[ctx.guild.id].is_playing():
+#                 await play_next(ctx)
+#                 while voice_clients[ctx.guild.id].is_playing():
+#                     await asyncio.sleep(1)  # 等待 1 秒，確保下一首歌曲播放完畢再繼續下一首
+#     except Exception as e:
+#         print(e)
+#         await ctx.send("無法播放 Spotify 歌單。請確保 URL 正確並重試。")
 
 
 # # PAUSE

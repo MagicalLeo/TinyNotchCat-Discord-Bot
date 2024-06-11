@@ -20,7 +20,7 @@ class Music:
     def add_song(self, url, user):
         self.song_queue.append(Song(url, user))
     
-    def next_song(self):
+    def next_song(self) -> str:
         if self.song_queue:
             return self.song_queue.pop(0).url
         return None
