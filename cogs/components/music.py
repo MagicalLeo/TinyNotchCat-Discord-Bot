@@ -16,12 +16,14 @@ class Music:
         self.song_queue: List[Song] = []
         self.auto_play = False
         self.playing = False
+        self.now_playing = None
     
     def add_song(self, url, user):
         self.song_queue.append(Song(url, user))
     
     def next_song(self) -> str:
         if self.song_queue:
+            self.now_playing = self.song_queue[0]
             return self.song_queue.pop(0).url
         return None
     
@@ -29,9 +31,7 @@ class Music:
         self.auto_play = auto_play
     
     def get_now_playing(self):
-        if self.song_queue:
-            return self.song_queue[0].url, self.song_queue[0].user
-        return None, None
+        return self.now_playing.url, self.now_playing.user
     
     def get_voice_client(self):
         return self.voice_client

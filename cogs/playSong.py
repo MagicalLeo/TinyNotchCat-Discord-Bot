@@ -67,7 +67,6 @@ class PlaySong(commands.Cog):
         guild_music.set_auto_play(not guild_music.get_auto_play())
         await interaction.followup.send("自動播放已" + ("開啟" if guild_music.get_auto_play() else "關閉"))
 
-
     # function command
     @app_commands.command(name = "control", description = "控制音樂撥放")
     @app_commands.describe(method = "操作方式")
@@ -108,7 +107,18 @@ class PlaySong(commands.Cog):
                 await interaction.followup.send("停止播放")
         except KeyError:
             pass
-    
+
+    # now play command
+    @app_commands.command(name = "nowplaying", description = "目前播放的音樂")
+    async def now_play(self, interaction: discord.Interaction):
+        if interaction.guild_id not in self.guilds_music.keys():
+            await interaction.response.send_message("目前沒有音樂在播放")
+            return
+
+        guild_music = self.guilds_music[interaction.guild_id]
+        now_playing, user = guild_music.get_now_playing()
+        await interaction.response.send_message(f"目前播放: {now_playing} by {user}")
+
     async def map_songs(self, interaction: discord.Interaction, url: str):
         if interaction.guild_id not in self.guilds_music.keys():
             voice_client = await interaction.user.voice.channel.connect()
