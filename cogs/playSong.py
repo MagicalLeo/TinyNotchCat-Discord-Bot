@@ -23,8 +23,9 @@ FFMPEG_OPTIONS = {
     'options': '-vn -filter:a "volume=0.15"'
 }
 URL_PATTERN = {
-    "youtube": r'^https:\/\/(www\.)?youtube\.com\/.*',
+    "youtube": r'https://www\.youtube\.com/watch\?v=[\w-]+',
     "spotify": r'^https:\/\/open\.spotify\.com\/track\/.*',
+    "youtube_list": r'https://www\.youtube\.com/watch\?v=[\w-]+&list=[\w-]+',
     "spotify_list": r'^https:\/\/open\.spotify\.com\/playlist\/.*'
 }
 
@@ -48,18 +49,19 @@ class PlaySong(commands.Cog):
         if not await self.map_songs(interaction, url):
             await interaction.followup.send("未知的音樂連結")
             return
-
+        
         if not await self.play_song(interaction):
             await interaction.followup.send("無法播放此音樂")
-
-        await interaction.followup.send("音樂已加入播放清單")
+        else:
+            await interaction.followup.send(f'音樂已加入播放清單\n{url}')
     
     # auto play command
     @app_commands.command(name = "auto", description = "自動播放音樂")
     async def auto_play(self, interaction: discord.Interaction):
         await interaction.response.defer()
         if interaction.guild_id not in self.guilds_music.keys():
-            if not await self.play_song(interaction, 'https://www.youtube.com/watch?v=' + random.choice(self.recommended_songs)):
+            await self.map_songs(interaction, 'https://www.youtube.com/watch?v=' + random.choice(self.recommended_songs))
+            if not await self.play_song(interaction):
                 await interaction.followup.send("無法播音樂")
                 return
 
@@ -97,7 +99,7 @@ class PlaySong(commands.Cog):
                 await interaction.followup.send("跳過此首音樂")
                 await voice_client.stop()
                 guild_music = self.guilds_music[interaction.guild_id]
-                guild_music.add_song(None, interaction.user)
+                guild_music.add_song(None, None)
                 await self.play_next(interaction)
             elif method == "stop":
                 guild_music.set_playing(False)
@@ -119,39 +121,66 @@ class PlaySong(commands.Cog):
         now_playing, user = guild_music.get_now_playing()
         await interaction.response.send_message(f"目前播放: {now_playing} by {user}")
 
+    
     async def map_songs(self, interaction: discord.Interaction, url: str):
-        if interaction.guild_id not in self.guilds_music.keys():
+        if interaction.guild.voice_client is None:
             voice_client = await interaction.user.voice.channel.connect()
             self.guilds_music[interaction.guild_id] = Music(voice_client)
         
         guild_music = self.guilds_music[interaction.guild_id]
+        songs = []
 
-        if re.match(URL_PATTERN["youtube"], url):
-            guild_music.add_song(url, interaction.user)
-        elif re.match(URL_PATTERN["spotify"], url):
-            track_id = url.split('/')[-1].split('?')[0]
-            track = self.sp.track(track_id)
-            track_name = track['name']
-            track_artist = track['artists'][0]['name']
-            query = f"{track_name} {track_artist} lyrics"
-            guild_music.add_song(f"ytsearch:{query}", interaction.user)
+        if re.match(URL_PATTERN["youtube_list"], url):
+            songs = self.parse_youtube_list(url)
         elif re.match(URL_PATTERN["spotify_list"], url):
-            playlist_id = url.split('/')[-1].split('?')[0]
-            results = self.sp.playlist_tracks(playlist_id)
-            for item in results['items']:
-                track = item['track']
-                track_name = track['name']
-                track_artist = track['artists'][0]['name']
-                query = f"{track_name} {track_artist} lyrics"
-                guild_music.add_song(f"ytsearch:{query}", interaction.user)
+            songs = self.parse_spotify_list(url)
+        elif re.match(URL_PATTERN["youtube"], url):
+            songs.append(url)
+        elif re.match(URL_PATTERN["spotify"], url):
+            song = self.parse_spotify(url)
+            songs.append(song)
         else:
             await voice_client.disconnect()
             del self.guilds_music[interaction.guild_id]
             return False
+        
+        for song in songs:
+            guild_music.add_song(song, interaction.user.name)
         return True
+    
+    def parse_youtube_list(self, url: str):
+        results = self.ytdl.extract_info(url, download=False)
+        songs = []
+        for entry in results['entries'][:10]:
+            songs.append(entry['url'])
+        return songs
+    
+    def parse_spotify(self, url: str):
+        track_id = url.split('/')[-1].split('?')[0]
+        track = self.sp.track(track_id)
+        track_name = track['name']
+        track_artist = track['artists'][0]['name']
+        query = f"{track_name} {track_artist} lyrics"
+        return f"ytsearch:{query}"
+    
+    def parse_spotify_list(self, url: str):
+        playlist_id = url.split('/')[-1].split('?')[0]
+        results = self.sp.playlist_tracks(playlist_id)
+        songs = []
+        for item in results['items']:
+            track = item['track']
+            track_name = track['name']
+            track_artist = track['artists'][0]['name']
+            query = f"{track_name} {track_artist} lyrics"
+            songs.append(f"ytsearch:{query}")
+        return songs
 
     async def play_song(self, interaction: discord.Interaction):
         guild_music = self.guilds_music[interaction.guild_id]
+        
+        if guild_music.is_playing():
+            return True
+
         url = guild_music.next_song()
         
         try:
@@ -189,7 +218,7 @@ class PlaySong(commands.Cog):
         try:
             loop = asyncio.get_event_loop()
             data = await loop.run_in_executor(None, lambda: self.ytdl.extract_info(next_song, download=False))
-            song = data['url']
+            song = data['url'] if 'url' in data else data['entries'][0]['url']
 
             player = discord.FFmpegPCMAudio(song, **FFMPEG_OPTIONS, executable=FFMPEG_PATH)
             voice_client = guild_music.get_voice_client()

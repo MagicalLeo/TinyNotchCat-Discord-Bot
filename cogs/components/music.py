@@ -1,5 +1,6 @@
 from discord import VoiceClient
 from typing import List
+import threading
 
 
 class Song:
@@ -14,17 +15,20 @@ class Music:
     def __init__(self, voice_client: VoiceClient):
         self.voice_client = voice_client
         self.song_queue: List[Song] = []
+        self.lock = threading.Lock()
         self.auto_play = False
         self.playing = False
         self.now_playing = None
     
     def add_song(self, url, user):
-        self.song_queue.append(Song(url, user))
+        with self.lock:
+            self.song_queue.append(Song(url, user))
     
     def next_song(self) -> str:
-        if self.song_queue:
-            self.now_playing = self.song_queue[0]
-            return self.song_queue.pop(0).url
+        with self.lock:
+            if self.song_queue:
+                self.now_playing = self.song_queue[0]
+                return self.song_queue.pop(0).url
         return None
     
     def set_auto_play(self, auto_play):

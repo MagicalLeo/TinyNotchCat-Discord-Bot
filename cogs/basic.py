@@ -30,7 +30,7 @@ class Basic(commands.Cog):
         await interaction.response.send_message(embed=em)
 
     # ping command
-    @app_commands.command(name = "ping", description = "Ping the bot")
+    @app_commands.command(name = "ping", description = "顯示延遲")
     async def ping(self, interaction: discord.Interaction):
         latency = round(self.bot.latency * 1000)
         await interaction.response.send_message("Ping: " + str(latency) + "ms")
