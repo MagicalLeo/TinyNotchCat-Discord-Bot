@@ -53,6 +53,7 @@ async def reload(ctx: commands.Context, extension: str):
     except:
         await ctx.send(f'{extension} not found')
 
+
 def write_helps():
     commands = Commands()
     all_commands = {}

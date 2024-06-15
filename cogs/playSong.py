@@ -9,6 +9,7 @@ from discord.app_commands import Choice
 import yt_dlp as youtube_dl
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+from concurrent.futures import ThreadPoolExecutor
 from typing import Dict
 from .components.music import Music
 from .utils.loadData import load_json
@@ -28,6 +29,7 @@ URL_PATTERN = {
     "youtube_list": r'https://www\.youtube\.com/watch\?v=[\w-]+&list=[\w-]+',
     "spotify_list": r'^https:\/\/open\.spotify\.com\/playlist\/.*'
 }
+song_cache = {}
 
 class PlaySong(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -39,6 +41,7 @@ class PlaySong(commands.Cog):
                 client_secret=os.getenv('SPOTIFY_CLIENT_SECRET')
         ))
         self.guilds_music: Dict[str, Music] = {}
+        self.executor = ThreadPoolExecutor()
         self.recommended_songs = load_json('docs/songs.json')["recommended_songs"]
 
     # play command
@@ -131,7 +134,7 @@ class PlaySong(commands.Cog):
         songs = []
 
         if re.match(URL_PATTERN["youtube_list"], url):
-            songs = self.parse_youtube_list(url)
+            songs = await self.parse_youtube_list(url)
         elif re.match(URL_PATTERN["spotify_list"], url):
             songs = self.parse_spotify_list(url)
         elif re.match(URL_PATTERN["youtube"], url):
@@ -148,11 +151,15 @@ class PlaySong(commands.Cog):
             guild_music.add_song(song, interaction.user.name)
         return True
     
-    def parse_youtube_list(self, url: str):
-        results = self.ytdl.extract_info(url, download=False)
-        songs = []
-        for entry in results['entries'][:10]:
-            songs.append(entry['url'])
+    async def parse_youtube_list(self, url: str):
+        if url in song_cache:
+            return song_cache[url]
+
+        loop = asyncio.get_event_loop()
+        results = await loop.run_in_executor(self.executor, self.ytdl.extract_info, url, False)
+        
+        songs = [entry['url'] for entry in results['entries'][:10]]
+        song_cache[url] = songs
         return songs
     
     def parse_spotify(self, url: str):
